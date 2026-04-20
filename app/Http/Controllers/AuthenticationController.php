@@ -48,7 +48,6 @@ class AuthenticationController extends Controller
 
         if (Auth::attempt($data)) {
             return to_route('dashboard')->with('success', 'Logged in Successfully');
-
         }
 
         return redirect()->intended('login')->with('error', 'Invalid Credentials');
@@ -67,13 +66,13 @@ class AuthenticationController extends Controller
     {
         $status = Password::sendResetLink($request->only('email'));
 
-        if ($status === Password::RESET_LINK_SENT) {
+        if ($status === Password::ResetLinkSent) {
             return back()->with('success', 'Reset link sent to your email');
         }
 
         return back()->with('error', 'Unable to send reset link');
     }
-    /**
+    /**+
      * Display the reset-password page
      */
     public function showResetPassword($token)
@@ -85,12 +84,13 @@ class AuthenticationController extends Controller
      */
     public function resetPassword(StoreResetPasswordRequest $request)
     {
-        $status = Password::reset($request->only('email', 'password', 'password_confirmation', 'token'), function ($user, $password) {
+        $status = Password::reset($request
+            ->only('email', 'password', 'password_confirmation', 'token'), function ($user, $password) {
             $user->password = Hash::make($password);
             $user->save();
         });
 
-        if ($status === Password::PASSWORD_RESET) {
+        if ($status === Password::PasswordReset) {
             return redirect()->route('login')->with('success', 'Password reset successfully');
         }
 
@@ -99,9 +99,10 @@ class AuthenticationController extends Controller
     /**
      * Logout user
      */
-    public function logout() {
+    public function logout()
+    {
         Auth::logout();
 
-        return redirect()->route('login')->with('success','Logged out successfully');
+        return redirect()->route('login')->with('success', 'Logged out successfully');
     }
 }
