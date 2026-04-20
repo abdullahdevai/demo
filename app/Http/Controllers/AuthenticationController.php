@@ -3,14 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Repositories\UserRepository;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Password;
 use App\Http\Requests\Auth\StoreLoginRequest;
 use App\Http\Requests\Auth\StoreRegisterRequest;
 use App\Http\Requests\Auth\StoreResetPasswordRequest;
 use App\Http\Requests\Auth\StoreForgotPasswordRequest;
-use Illuminate\Support\Facades\Password;
+use App\Jobs\sendPasswordResetEmail;
 
 class AuthenticationController extends Controller
 {
@@ -28,9 +32,42 @@ class AuthenticationController extends Controller
     {
         $user = UserRepository::registerByRequest($request);
 
-        Auth::login($user);
+        event(new Registered($user));
 
-        return to_route('dashboard')->with('success', 'Registered Successfully');
+        return to_route('verification.notice');
+    }
+    /**
+     * Show Email Verification page
+     */
+    public function verifyPage()
+    {
+        return view('auth.email-verification');
+    }
+    /**
+     * Send Email for Email Verification
+     */
+    public function verifyLinkSend(Request $request)
+    {
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with('success', 'Verification Link sent');
+    }
+    /**
+     * Logic for verify a email
+     */
+    public function verifyEmail($user)
+    {
+        $user = Auth::user();
+
+        if ($user->hasVerifiedEmail()) {
+            return to_route('login')->with('success', 'Your Email is verified successfully');
+        }
+
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
+
+        return to_route('dashboard')->with('success', 'Email already verified');
     }
     /**
      * Display login view page
@@ -64,13 +101,11 @@ class AuthenticationController extends Controller
      */
     public function sendResetLink(StoreForgotPasswordRequest $request)
     {
-        $status = Password::sendResetLink($request->only('email'));
+        $email = $request->only('email');
 
-        if ($status === Password::ResetLinkSent) {
-            return back()->with('success', 'Reset link sent to your email');
-        }
+        sendPasswordResetEmail::dispatch($email['email']);
 
-        return back()->with('error', 'Unable to send reset link');
+        return back()->with('success', 'Reset link request received. You will receive an email shortly.');
     }
     /**+
      * Display the reset-password page

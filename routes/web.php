@@ -25,8 +25,20 @@ Route::middleware('guest')->controller(AuthenticationController::class)->group(f
     Route::post('/reset-password', 'resetPassword')->name('password.update');
 });
 
-Route::middleware('auth')->controller(AuthenticationController::class)->group(function(){
-    Route::post('/logout','logout')->name('logout');
+/**
+ * Logout Route
+ */
+Route::middleware('auth')->controller(AuthenticationController::class)->group(function () {
+    Route::post('/logout', 'logout')->name('logout');
 });
 
-require __DIR__.'/admin.php';
+/**
+ * Route for verify email
+ */
+Route::controller(AuthenticationController::class)->group(function () {
+    Route::get('email/verify', 'verifyPage')->middleware('auth')->name('verification.notice');
+    Route::post('/email/verification-notification', 'verifyLinkSend')->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+    Route::get('/email/verify/{id}/{hash}', 'verifyEmail')->middleware(['auth', 'signed'])->name('verification.verify');
+});
+
+require __DIR__ . '/admin.php';
