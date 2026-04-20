@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\RegisterUser;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Jobs\sendPasswordResetEmail;
 use App\Repositories\UserRepository;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Request;
@@ -14,7 +16,6 @@ use App\Http\Requests\Auth\StoreLoginRequest;
 use App\Http\Requests\Auth\StoreRegisterRequest;
 use App\Http\Requests\Auth\StoreResetPasswordRequest;
 use App\Http\Requests\Auth\StoreForgotPasswordRequest;
-use App\Jobs\sendPasswordResetEmail;
 
 class AuthenticationController extends Controller
 {
@@ -33,6 +34,7 @@ class AuthenticationController extends Controller
         $user = UserRepository::registerByRequest($request);
 
         event(new Registered($user));
+        event(new RegisterUser($user));
 
         return to_route('verification.notice');
     }
