@@ -3,19 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Events\RegisterUser;
-use App\Http\Controllers\Controller;
-use Illuminate\Auth\Events\Verified;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use App\Jobs\sendPasswordResetEmail;
-use App\Repositories\UserRepository;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\Password;
+use App\Http\Requests\Auth\StoreForgotPasswordRequest;
 use App\Http\Requests\Auth\StoreLoginRequest;
 use App\Http\Requests\Auth\StoreRegisterRequest;
 use App\Http\Requests\Auth\StoreResetPasswordRequest;
-use App\Http\Requests\Auth\StoreForgotPasswordRequest;
+use App\Jobs\sendPasswordResetEmail;
+use App\Repositories\UserRepository;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Request;
 
 class AuthenticationController extends Controller
 {
@@ -26,6 +25,7 @@ class AuthenticationController extends Controller
     {
         return view('auth.register');
     }
+
     /**
      * Register a new user
      */
@@ -36,8 +36,10 @@ class AuthenticationController extends Controller
         event(new Registered($user));
         event(new RegisterUser($user));
 
-        return to_route('verification.notice');
+        return to_route('dashboard');
+        // return to_route('verification.notice');
     }
+
     /**
      * Show Email Verification page
      */
@@ -45,6 +47,7 @@ class AuthenticationController extends Controller
     {
         return view('auth.email-verification');
     }
+
     /**
      * Send Email for Email Verification
      */
@@ -54,6 +57,7 @@ class AuthenticationController extends Controller
 
         return back()->with('success', 'Verification Link sent');
     }
+
     /**
      * Logic for verify a email
      */
@@ -71,6 +75,7 @@ class AuthenticationController extends Controller
 
         return to_route('dashboard')->with('success', 'Email already verified');
     }
+
     /**
      * Display login view page
      */
@@ -78,6 +83,7 @@ class AuthenticationController extends Controller
     {
         return view('auth.login');
     }
+
     /**
      * Login a authenticated user
      */
@@ -91,6 +97,7 @@ class AuthenticationController extends Controller
 
         return redirect()->intended('login')->with('error', 'Invalid Credentials');
     }
+
     /**
      * Display the view page for forget-password
      */
@@ -98,6 +105,7 @@ class AuthenticationController extends Controller
     {
         return view('auth.forgot-password');
     }
+
     /**
      * Send reset link in email for password-reset
      */
@@ -109,6 +117,7 @@ class AuthenticationController extends Controller
 
         return back()->with('success', 'Reset link request received. You will receive an email shortly.');
     }
+
     /**+
      * Display the reset-password page
      */
@@ -116,6 +125,7 @@ class AuthenticationController extends Controller
     {
         return view('auth.reset-password', ['token' => $token]);
     }
+
     /**
      * Reset password logic
      */
@@ -123,9 +133,9 @@ class AuthenticationController extends Controller
     {
         $status = Password::reset($request
             ->only('email', 'password', 'password_confirmation', 'token'), function ($user, $password) {
-            $user->password = Hash::make($password);
-            $user->save();
-        });
+                $user->password = Hash::make($password);
+                $user->save();
+            });
 
         if ($status === Password::PasswordReset) {
             return redirect()->route('login')->with('success', 'Password reset successfully');
@@ -133,6 +143,7 @@ class AuthenticationController extends Controller
 
         return back()->with('error', 'Unable to reset password');
     }
+
     /**
      * Logout user
      */

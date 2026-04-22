@@ -12,7 +12,7 @@ class LanguageRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,9 @@ class LanguageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:10'],
+            'image' => ['nullable', 'image', 'max:2048'],
         ];
     }
 }

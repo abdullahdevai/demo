@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\Media;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 class Language extends Model
 {
     use HasFactory;
@@ -12,13 +12,12 @@ class Language extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'flag'  => 'integer',
         'title' => 'string',
-        'name'  => 'string',
+        'name' => 'string',
     ];
 
-    public function flag()
+    public function flagImage()
     {
-        return $this->belongsTo(Media::class,'flag');
+        return $this->belongsTo(Media::class, 'flag');
     }
 }

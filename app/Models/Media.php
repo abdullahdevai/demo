@@ -13,18 +13,29 @@ class Media extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        "name"      => "string",
-        "extension" => "string",
-        "src"       => "string",
-        "path"      => "string",
-        "type"      => "string"
+        'name' => 'string',
+        'extension' => 'string',
+        'src' => 'string',
+        'path' => 'string',
+        'type' => 'string',
     ];
 
     public function image(): Attribute
     {
         $image = asset('favicon.ico');
+
         return Attribute::make(
-            get: fn() => $image,
+            get: function () use ($image) {
+                if ($this->path) {
+                    return asset('storage/'.$this->path);
+                }
+
+                if ($this->src) {
+                    return asset($this->src);
+                }
+
+                return $image;
+            },
         );
     }
 }

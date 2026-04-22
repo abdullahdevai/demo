@@ -13,18 +13,23 @@ class MediaRepository extends Repository
     {
         return Media::class;
     }
+
     /**
      * Store a image or file in media table
      */
-    public static function storeByRequest(UploadedFile $file, string $path, string $type = "image")
+    public static function storeByRequest(UploadedFile $file, string $folder, string $type = 'image'): Media
     {
+        $filename = $file->getClientOriginalName();
         $extension = $file->extension();
-        $path = Storage::put('/' . trim($path, '/'), $file, 'public');
-        $type = in_array($extension, ['jpg', 'jpeg', 'png', 'svg', 'gif']) ? 'image' : $extension;
+        $path = Storage::put('/'.trim($folder, '/'), $file, 'public');
+        $fileType = in_array($extension, ['jpg', 'jpeg', 'png', 'svg', 'gif']) ? 'image' : $extension;
 
-        self::create([
-            'type' => $type,
+        return self::create([
+            'name' => $filename,
+            'extension' => $extension,
             'src' => $path,
+            'path' => $folder,
+            'type' => $fileType,
         ]);
     }
 }

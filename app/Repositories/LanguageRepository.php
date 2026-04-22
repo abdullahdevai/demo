@@ -2,9 +2,9 @@
 
 namespace App\Repositories;
 
-use App\Models\Language;
 use Abedin\Maker\Repositories\Repository;
 use App\Http\Requests\Backend\LanguageRequest;
+use App\Models\Language;
 
 class LanguageRepository extends Repository
 {
@@ -12,6 +12,7 @@ class LanguageRepository extends Repository
     {
         return Language::class;
     }
+
     /**
      * Store a new language
      */
@@ -20,15 +21,33 @@ class LanguageRepository extends Repository
         $flagId = null;
 
         if ($request->hasFile('image')) {
-            $flag = MediaRepository::storeByRequest($request->file('image'), $request->path, 'Image');
-        };
+            $media = MediaRepository::storeByRequest($request->file('image'), 'flags', 'Image');
+            $flagId = $media->id;
+        }
 
-        $filePath = base_path('lang/$request->name.json');
+        self::create([
+            'flag' => $flagId,
+            'title' => (string) $request->title,
+            'name' => (string) $request->name,
+        ]);
+    }
 
-        return self::create([
-            'flag'  => (int) $flag,
-            'title' =>(string) $request->title,
-            'name'  => (string) $request->name
+    /**
+     * Update language
+     */
+    public static function updateByRequest(Language $language, LanguageRequest $request)
+    {
+        $flagId = $language->flag;
+
+        if ($request->hasFile('image')) {
+            $media = MediaRepository::storeByRequest($request->file('image'), 'flags', 'Image');
+            $flagId = $media->id;
+        }
+
+        self::update($language, [
+            'flag' => $flagId,
+            'title' => (string) $request->title,
+            'name' => (string) $request->name,
         ]);
     }
 }
